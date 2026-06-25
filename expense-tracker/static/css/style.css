@@ -507,6 +507,25 @@ a { color: inherit; text-decoration: none; }
     color: var(--ink-faint);
 }
 
+.footer-links {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.8rem;
+}
+
+.footer-link {
+    color: var(--ink-faint);
+    text-decoration: none;
+}
+
+.footer-link:hover { text-decoration: underline; }
+
+.footer-link-sep {
+    color: var(--ink-faint);
+    user-select: none;
+}
+
 /* ------------------------------------------------------------------ */
 /* Responsive                                                          */
 /* ------------------------------------------------------------------ */
