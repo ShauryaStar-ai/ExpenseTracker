@@ -138,3 +138,48 @@ Add the following rules after the `.footer-copy` block:
    - Hovering either link shows an underline.
    - Clicking either link goes nowhere (stays on the same page — `href="#"` behavior).
 4. Resize the browser to a narrow viewport (< 400 px) and confirm the links wrap or stay readable without breaking the layout.
+
+---
+
+## Change 2: Terms and Conditions Page
+
+**Date:** June 2026
+
+### What was done
+
+- Added `/terms` route to `expense-tracker/app.py` rendering `terms.html`
+- Created `expense-tracker/templates/terms.html` extending `base.html` with generic T&C content for a finance tracking app (10 sections: acceptance, service description, user accounts, data, acceptable use, accuracy, warranties, liability, changes, contact)
+- Updated the "Terms and Conditions" footer link in `base.html` from `href="#"` to `href="{{ url_for('terms') }}"` with `target="_blank"` so it opens in a new tab
+- Added `.legal-page`, `.legal-inner`, `.legal-title`, `.legal-meta`, `.legal-body`, `.legal-link` CSS classes to `style.css` using the existing design system variables (`--font-display`, `--font-body`, `--ink`, `--ink-soft`, `--ink-muted`, `--accent`)
+
+### Files modified
+
+| File | Change |
+|---|---|
+| `expense-tracker/app.py` | Added `@app.route("/terms")` |
+| `expense-tracker/templates/terms.html` | New file |
+| `expense-tracker/templates/base.html` | Footer link updated to `url_for('terms')` + `target="_blank"` |
+| `expense-tracker/static/css/style.css` | Added legal page styles |
+
+---
+
+## Change 3: Privacy Policy Page
+
+**Date:** June 2026
+
+### What was done
+
+- Added `/privacy` route to `expense-tracker/app.py` rendering `privacy.html`
+- Created `expense-tracker/templates/privacy.html` extending `base.html` with generic privacy policy content (10 sections: overview, data collected, how data is used, data sharing, storage & security, retention, user rights, cookies, changes, contact)
+- Updated the "Privacy Policy" footer link in `base.html` from `href="#"` to `url_for('privacy')` with `target="_blank"`
+- Updated the Privacy Policy link inside `terms.html` from `href="#"` to `url_for('privacy')`
+- No new CSS needed — reuses the `.legal-*` classes added in Change 2
+
+### Files modified
+
+| File | Change |
+|---|---|
+| `expense-tracker/app.py` | Added `@app.route("/privacy")` |
+| `expense-tracker/templates/privacy.html` | New file |
+| `expense-tracker/templates/base.html` | Footer link updated to `url_for('privacy')` + `target="_blank"` |
+| `expense-tracker/templates/terms.html` | Internal Privacy Policy link updated to `url_for('privacy')` |

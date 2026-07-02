@@ -1,0 +1,120 @@
+╭─── Claude Code v2.1.187 ─────────────────────────────────────────────────────╮
+│                                                    │ Tips for getting        │
+│                Welcome back Shaurya!               │ started                 │
+│                                                    │ Run /init to create a … │
+│                       ▐▛███▜▌                      │ ─────────────────────── │
+│                      ▝▜█████▛▘                     │ What's new              │
+│                        ▘▘ ▝▝                       │ Added `sandbox.credent… │
+│      Sonnet 4.6 · Claude Pro ·                     │ Added org-configured m… │
+│      shauryahooda2009@gmail.com's Organization     │ Added mouse click supp… │
+│        ~\code\shaurya\python\expense-tracker       │ /release-notes for more │
+╰──────────────────────────────────────────────────────────────────────────────╯
+
+
+❯ what does the project do.                                                     
+
+● Let me explore the project structure quickly.
+
+  Searched for 1 pattern, read 2 files (ctrl+o to expand)
+
+● This is a starter/scaffold project for a Flask expense tracker web app — it
+  looks like a teaching project where students fill in the implementation step
+  by step.
+
+  Here's what's in place so far:
+
+  - Flask web app (app.py) with routes already defined for landing, register,
+  login, logout, profile, and CRUD operations for expenses
+  - SQLite database layer (database/db.py) — currently just a comment stub;
+  students are meant to implement get_db(), init_db(), and seed_db()
+  - HTML templates for landing, register, and login pages
+  - Static CSS/JS files
+
+  The routes are broken into numbered steps (Step 1–9), most returning
+  placeholder strings. The full feature set when complete would be: user
+  registration/login/logout, a profile page, and adding/editing/deleting
+  expenses — a standard personal finance tracker.
+
+✻ Crunched for 13s
+
+※ recap: Flask expense tracker teaching project, mostly scaffold with placeholder routes. Next step is implementing the SQLite database layer in database/db.py. (disable recaps in /config)
+
+❯ what tech stack does the project has                                          
+
+  Read 2 files (ctrl+o to expand)
+
+● The tech stack is:
+
+  Backend
+  - Python 3
+  - Flask 3.1.3 — web framework
+  - Werkzeug 3.1.6 — utilities (password hashing, request handling)
+  - SQLite — database (via Python's built-in sqlite3)
+
+  Frontend
+  - Jinja2 — HTML templating (built into Flask)
+  - Vanilla CSS (style.css)
+  - Vanilla JavaScript (main.js)
+  - Google Fonts (DM Serif Display + DM Sans)
+
+  Testing
+  - pytest 8.3.5
+  - pytest-flask 1.3.0
+
+  No external JS frameworks (no React, Vue, etc.) — it's a straightforward
+  server-rendered app.
+
+✻ Sautéed for 12s
+
+❯ Expalin the project strcuture                                                 
+
+  Read 2 files (ctrl+o to expand)
+
+● Here's the full project structure explained:
+
+  expense-tracker/
+  ├── app.py                  # Entry point — Flask app + all route definitions
+  ├── requirements.txt        # Python dependencies
+  ├── .gitignore
+  │
+  ├── database/
+  │   ├── __init__.py
+  │   └── db.py               # Stub for SQLite helpers (get_db, init_db,
+  seed_db) — not yet implemented
+  │
+  ├── templates/              # Jinja2 HTML templates
+  │   ├── base.html           # Master layout — navbar, footer, font/CSS/JS
+  links
+  │   ├── landing.html        # Public homepage (extends base.html)
+  │   ├── login.html          # Sign-in page (extends base.html)
+  │   └── register.html       # Sign-up page (extends base.html)
+  │
+  └── static/
+      ├── css/
+      │   └── style.css       # All custom styles
+      └── js/
+          └── main.js         # Empty — students add JS as features are built
+
+  How it fits together:
+
+  - base.html is the shared shell — every other template extends it using
+  Jinja2's {% extends %} / {% block %} system. It provides the navbar and
+  footer.
+  - app.py maps URLs to Python functions, which render the templates.
+  - database/db.py is meant to hold the SQLite connection logic — it's the only
+  backend layer, no ORM involved.
+  - static/ holds files served directly to the browser without Flask processing
+  them.
+
+  The structure follows a simple MVC-lite pattern: app.py is the controller,
+  templates/ is the view, and database/db.py will be the model once implemented.
+
+✻ Churned for 13s
+
+※ recap: This is a Flask-based expense tracker teaching project called Spendly where students implement features step by step. The database layer in database/db.py needs to be built first before any other features can work. (disable recaps in /config)
+
+❯ /rename 
+  ⎿  Session renamed to: flask-project-structure
+
+❯ /rename ProjectStrcure Overview 
+  ⎿  Session renamed to: ProjectStrcure Overview
