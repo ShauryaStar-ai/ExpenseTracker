@@ -1,14 +1,3 @@
-╭─── Claude Code v2.1.187 ─────────────────────────────────────────────────────╮
-│                                                    │ Tips for getting        │
-│                Welcome back Shaurya!               │ started                 │
-│                                                    │ Run /init to create a … │
-│                       ▐▛███▜▌                      │ ─────────────────────── │
-│                      ▝▜█████▛▘                     │ What's new              │
-│                        ▘▘ ▝▝                       │ Added `sandbox.credent… │
-│      Sonnet 4.6 · Claude Pro ·                     │ Added org-configured m… │
-│      shauryahooda2009@gmail.com's Organization     │ Added mouse click supp… │
-│        ~\code\shaurya\python\expense-tracker       │ /release-notes for more │
-╰──────────────────────────────────────────────────────────────────────────────╯
 
 
 ❯ what does the project do.                                                     
@@ -118,3 +107,8 @@
 
 ❯ /rename ProjectStrcure Overview 
   ⎿  Session renamed to: ProjectStrcure Overview
+
+
+
+     <--- the command to run the application
+   .\venv\Scripts\python.exe expense-tracker\app.py

@@ -1,4 +1,4 @@
-# CLAUDE.md
+# CLAUDE.md 
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
@@ -21,6 +21,12 @@ pip install -r requirements.txt
 # Run dev server (port 5001)
 python app.py
 ```
+## Code style
+Python: PEP 8, snake_case for all variables and functions
+Templates: Jinja2 with url_for() for every internal link — never hardcode URLs
+Route functions: one responsibility only — fetch data, render template, done
+DB queries: always use parameterized queries (? placeholders) — never f-strings in SQL
+Error handling: use abort() for HTTP errors, not bare return "error string"
 
 ## Running tests
 
