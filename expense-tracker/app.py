@@ -1,6 +1,7 @@
 import os
-from flask import Flask, render_template
-from database.db import init_db, close_db, seed_db
+from flask import Flask, render_template, request, redirect, url_for
+from werkzeug.security import generate_password_hash
+from database.db import get_db, init_db, close_db, seed_db
 
 app = Flask(__name__)
 app.secret_key = os.environ.get('SECRET_KEY', 'dev-secret-change-in-production')
@@ -17,8 +18,30 @@ def landing():
     return render_template("landing.html")
 
 
-@app.route("/register")
+@app.route("/register", methods=["GET", "POST"])
 def register():
+    if request.method == "POST":
+        name     = request.form.get("name", "").strip()
+        email    = request.form.get("email", "").strip()
+        password = request.form.get("password", "").strip()
+
+        if not name or not email or not password:
+            return render_template("register.html", error="All fields are required.")
+        if len(password) < 4:
+            return render_template("register.html", error="Password must be at least 4 characters.")
+
+        db = get_db()
+        existing = db.execute("SELECT id FROM users WHERE email = ?", (email,)).fetchone()
+        if existing:
+            return render_template("register.html", error="An account with that email already exists.")
+
+        db.execute(
+            "INSERT INTO users (name, email, password_hash) VALUES (?, ?, ?)",
+            (name, email, generate_password_hash(password))
+        )
+        db.commit()
+        return redirect(url_for("login"))
+
     return render_template("register.html")
 
 
