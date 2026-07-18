@@ -92,37 +92,63 @@ def profile():
     if not session.get("user_id"):
         return redirect(url_for("login"))
 
+    from datetime import datetime
+    from collections import defaultdict
+
+    user_id = session["user_id"]
+    db = get_db()
+
+    user_row = db.execute(
+        "SELECT name, email, created_at FROM users WHERE id = ?",
+        (user_id,)
+    ).fetchone()
+
+    dt_joined = datetime.strptime(user_row["created_at"][:10], "%Y-%m-%d")
+    initials = "".join(w[0].upper() for w in user_row["name"].split()[:2])
+
     user = {
-        "name": "Nitish Kumar",
-        "email": "nitish@example.com",
-        "member_since": "January 2025",
-        "initials": "NK",
+        "name":         user_row["name"],
+        "email":        user_row["email"],
+        "member_since": dt_joined.strftime("%B %Y"),
+        "initials":     initials,
     }
+
+    rows = db.execute(
+        "SELECT amount, category, date, description FROM expenses "
+        "WHERE user_id = ? ORDER BY date DESC",
+        (user_id,)
+    ).fetchall()
+
+    transactions = []
+    for r in rows:
+        dt = datetime.strptime(r["date"], "%Y-%m-%d")
+        transactions.append({
+            "date":        dt.strftime("%d %b %Y"),
+            "description": r["description"] or "",
+            "category":    r["category"],
+            "amount":      f"₹{r['amount']:,.0f}",
+        })
+
+    total = sum(r["amount"] for r in rows)
+    cat_totals = defaultdict(float)
+    for r in rows:
+        cat_totals[r["category"]] += r["amount"]
+
+    top_category = max(cat_totals, key=cat_totals.get) if cat_totals else "—"
 
     stats = {
-        "total_spent": "₹7,019",
-        "transaction_count": 8,
-        "top_category": "Travel",
+        "total_spent":       f"₹{total:,.0f}",
+        "transaction_count": len(rows),
+        "top_category":      top_category,
     }
 
-    transactions = [
-        {"date": "01 Jul 2026", "description": "Electricity bill",  "category": "Bills",         "amount": "₹800"},
-        {"date": "30 Jun 2026", "description": "Restaurant lunch",  "category": "Food",          "amount": "₹320"},
-        {"date": "29 Jun 2026", "description": "Movie tickets",     "category": "Entertainment", "amount": "₹500"},
-        {"date": "28 Jun 2026", "description": "Groceries",         "category": "Food",          "amount": "₹450"},
-        {"date": "27 Jun 2026", "description": "New shirt",         "category": "Shopping",      "amount": "₹999"},
-        {"date": "26 Jun 2026", "description": "Pharmacy",          "category": "Health",        "amount": "₹250"},
-        {"date": "25 Jun 2026", "description": "Auto to office",    "category": "Travel",        "amount": "₹1,200"},
-        {"date": "22 Jun 2026", "description": "Weekend trip",      "category": "Travel",        "amount": "₹2,500"},
-    ]
-
     categories = [
-        {"name": "Travel",        "amount": "₹3,700", "pct": 53},
-        {"name": "Shopping",      "amount": "₹999",   "pct": 14},
-        {"name": "Bills",         "amount": "₹800",   "pct": 11},
-        {"name": "Food",          "amount": "₹770",   "pct": 11},
-        {"name": "Entertainment", "amount": "₹500",   "pct": 7},
-        {"name": "Health",        "amount": "₹250",   "pct": 4},
+        {
+            "name":   name,
+            "amount": f"₹{amount:,.0f}",
+            "pct":    round((amount / total) * 100) if total else 0,
+        }
+        for name, amount in sorted(cat_totals.items(), key=lambda x: x[1], reverse=True)
     ]
 
     return render_template(
