@@ -291,7 +291,7 @@ Add at the end of the file using existing design tokens:
   padding: 0.5rem 0.75rem;
   border: 1px solid var(--border);
   border-radius: var(--radius-sm);
-  background: var(--surface);
+  background: var(--paper-card);
   color: var(--text);
   font-size: 0.95rem;
   min-width: 10rem;

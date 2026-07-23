@@ -1,4 +1,6 @@
 import os
+from collections import defaultdict
+from datetime import datetime
 from flask import Flask, render_template, request, redirect, url_for, session, abort
 from werkzeug.security import generate_password_hash, check_password_hash
 from database.db import get_db, init_db, close_db, seed_db
@@ -92,11 +94,8 @@ def profile():
     if not session.get("user_id"):
         return redirect(url_for("login"))
 
-    from datetime import datetime
-    from collections import defaultdict
-
     user_id = session["user_id"]
-    db = get_db()
+    db      = get_db()
 
     user_row = db.execute(
         "SELECT name, email, created_at FROM users WHERE id = ?",
@@ -104,7 +103,7 @@ def profile():
     ).fetchone()
 
     dt_joined = datetime.strptime(user_row["created_at"][:10], "%Y-%m-%d")
-    initials = "".join(w[0].upper() for w in user_row["name"].split()[:2])
+    initials  = "".join(w[0].upper() for w in user_row["name"].split()[:2])
 
     user = {
         "name":         user_row["name"],
@@ -113,11 +112,23 @@ def profile():
         "initials":     initials,
     }
 
-    rows = db.execute(
-        "SELECT amount, category, date, description FROM expenses "
-        "WHERE user_id = ? ORDER BY date DESC",
-        (user_id,)
-    ).fetchall()
+    category_filter = request.args.get("category", "").strip()
+    from_date       = request.args.get("from", "").strip()
+    to_date         = request.args.get("to", "").strip()
+
+    query  = "SELECT amount, category, date, description FROM expenses WHERE user_id = ?"
+    params = [user_id]
+    if category_filter:
+        query += " AND category = ?"
+        params.append(category_filter)
+    if from_date:
+        query += " AND date >= ?"
+        params.append(from_date)
+    if to_date:
+        query += " AND date <= ?"
+        params.append(to_date)
+    query += " ORDER BY date DESC"
+    rows = db.execute(query, params).fetchall()
 
     transactions = []
     for r in rows:
@@ -129,7 +140,7 @@ def profile():
             "amount":      f"₹{r['amount']:,.0f}",
         })
 
-    total = sum(r["amount"] for r in rows)
+    total      = sum(r["amount"] for r in rows)
     cat_totals = defaultdict(float)
     for r in rows:
         cat_totals[r["category"]] += r["amount"]
@@ -151,12 +162,21 @@ def profile():
         for name, amount in sorted(cat_totals.items(), key=lambda x: x[1], reverse=True)
     ]
 
+    cat_rows       = db.execute(
+        "SELECT DISTINCT category FROM expenses WHERE user_id = ? ORDER BY category",
+        (user_id,)
+    ).fetchall()
+    all_categories = [r["category"] for r in cat_rows]
+    active_filter  = {"category": category_filter, "from": from_date, "to": to_date}
+
     return render_template(
         "profile.html",
         user=user,
         stats=stats,
         transactions=transactions,
         categories=categories,
+        all_categories=all_categories,
+        active_filter=active_filter,
     )
 
 

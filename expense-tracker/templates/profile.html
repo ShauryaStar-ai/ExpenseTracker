@@ -31,9 +31,46 @@
       </div>
     </div>
 
+    <!-- Filter form -->
+    <div class="section-block">
+      <h2 class="section-title">Filter Transactions</h2>
+      <form class="filter-form" method="get" action="{{ url_for('profile') }}">
+        <div class="filter-field">
+          <label for="category">Category</label>
+          <select name="category" id="category">
+            <option value="">All categories</option>
+            {% for cat in all_categories %}
+            <option value="{{ cat }}" {% if active_filter.category == cat %}selected{% endif %}>{{ cat }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="filter-field">
+          <label for="from">From</label>
+          <input type="date" name="from" id="from" value="{{ active_filter.from }}">
+        </div>
+        <div class="filter-field">
+          <label for="to">To</label>
+          <input type="date" name="to" id="to" value="{{ active_filter.to }}">
+        </div>
+        <div class="filter-actions">
+          <button type="submit" class="btn btn-primary">Apply</button>
+          <a href="{{ url_for('profile') }}" class="btn btn-ghost">Clear</a>
+        </div>
+      </form>
+    </div>
+
     <!-- Transaction history table -->
     <div class="section-block">
       <h2 class="section-title">Recent Transactions</h2>
+      {% if active_filter.category or active_filter.from or active_filter.to %}
+      <p class="filter-active-notice">
+        Showing {{ transactions | length }} result(s)
+        {% if active_filter.category %}in <strong>{{ active_filter.category }}</strong>{% endif %}
+        {% if active_filter.from %}from <strong>{{ active_filter.from }}</strong>{% endif %}
+        {% if active_filter.to %}to <strong>{{ active_filter.to }}</strong>{% endif %}.
+        <a href="{{ url_for('profile') }}">Clear filter</a>
+      </p>
+      {% endif %}
       <table class="expense-table">
         <thead>
           <tr>
