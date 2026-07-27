@@ -1,6 +1,7 @@
 import os
 from collections import defaultdict
 from datetime import datetime
+from urllib.parse import urlencode
 from flask import Flask, render_template, request, redirect, url_for, session, abort
 from werkzeug.security import generate_password_hash, check_password_hash
 from database.db import get_db, init_db, close_db, seed_db
@@ -168,6 +169,8 @@ def profile():
     ).fetchall()
     all_categories = [r["category"] for r in cat_rows]
     active_filter  = {"category": category_filter, "from": from_date, "to": to_date}
+    add_error      = request.args.get("add_error", "")
+    show_modal     = bool(add_error)
 
     return render_template(
         "profile.html",
@@ -177,12 +180,58 @@ def profile():
         categories=categories,
         all_categories=all_categories,
         active_filter=active_filter,
+        add_error=add_error,
+        show_modal=show_modal,
     )
 
 
-@app.route("/expenses/add")
+@app.route("/analytics")
+def analytics():
+    if not session.get("user_id"):
+        return redirect(url_for("login"))
+    return render_template("analytics.html")
+
+
+def _profile_with_error(message):
+    return redirect(url_for("profile") + "?" + urlencode({"add_error": message}))
+
+
+@app.route("/expenses/add", methods=["GET", "POST"])
 def add_expense():
-    return "Add expense — coming in Step 7"
+    if not session.get("user_id"):
+        return redirect(url_for("login"))
+
+    if request.method == "GET":
+        return redirect(url_for("profile"))
+
+    amount_str  = request.form.get("amount", "").strip()
+    category    = request.form.get("category", "").strip()
+    date_str    = request.form.get("date", "").strip()
+    description = request.form.get("description", "").strip()
+
+    if not amount_str or not category or not date_str:
+        return _profile_with_error("Amount, category, and date are required.")
+
+    try:
+        amount = float(amount_str)
+        if amount <= 0:
+            raise ValueError
+    except ValueError:
+        return _profile_with_error("Amount must be a positive number.")
+
+    try:
+        datetime.strptime(date_str, "%Y-%m-%d")
+    except ValueError:
+        return _profile_with_error("Date must be in YYYY-MM-DD format.")
+
+    user_id = session["user_id"]
+    db = get_db()
+    db.execute(
+        "INSERT INTO expenses (user_id, amount, category, date, description) VALUES (?, ?, ?, ?, ?)",
+        (user_id, amount, category, date_str, description or None)
+    )
+    db.commit()
+    return redirect(url_for("profile"))
 
 
 @app.route("/expenses/<int:id>/edit")
