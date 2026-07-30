@@ -1,5 +1,109 @@
 {% extends "base.html" %}
 {% block title %}Profile — Spendly{% endblock %}
+
+{% block head %}
+<style>
+/* ── Hello Kitty Theme — profile page ───────────────────────────── */
+:root {
+  --ink:            #2c0a1e;
+  --ink-soft:       #5a1a3a;
+  --ink-muted:      #9b4d6b;
+  --ink-faint:      #c891a8;
+  --paper:          #fff5f9;
+  --paper-warm:     #ffdde9;
+  --paper-card:     #ffffff;
+  --accent:         #e91e8c;
+  --accent-light:   #ffd6e7;
+  --accent-2:       #ff69b4;
+  --accent-2-light: #fff0f5;
+  --border:         #ffc0db;
+  --border-soft:    #ffe4ef;
+}
+
+/* Polka-dot background */
+.profile-section {
+  background-color: var(--paper);
+  background-image: radial-gradient(circle, #ffc0db 1.5px, transparent 1.5px);
+  background-size: 22px 22px;
+}
+
+/* Avatar with bow */
+.avatar-wrap {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.avatar-bow {
+  font-size: 1.5rem;
+  position: absolute;
+  top: -1.1rem;
+  left: 50%;
+  transform: translateX(-50%);
+  line-height: 1;
+  z-index: 1;
+}
+
+.avatar {
+  border: 3px solid var(--accent);
+  box-shadow: 0 0 0 4px var(--accent-light);
+  background: var(--accent);
+}
+
+/* Profile card */
+.profile-card {
+  border-color: var(--accent-light);
+  border-width: 2px;
+}
+
+/* Stat cards */
+.stat-card {
+  border-color: var(--accent-light);
+  border-width: 2px;
+  background: linear-gradient(140deg, #fff 80%, #ffd6e7 100%);
+}
+
+/* Section titles */
+.section-title::before { content: "🎀 "; }
+
+/* Progress bars */
+.progress-bar-fill {
+  background: linear-gradient(90deg, var(--accent-2), var(--accent));
+}
+
+/* Buttons */
+.btn-primary            { background: var(--accent); }
+.btn-primary:hover      { background: #c2185b; }
+.btn-submit             { background: var(--accent); }
+.btn-submit:hover       { background: #c2185b; }
+
+/* Navbar */
+.nav-cta                { background: var(--accent) !important; }
+.nav-cta:hover          { background: #c2185b !important; }
+.brand-icon             { color: var(--accent); }
+
+/* Table */
+.expense-table th                     { background: var(--paper-warm); }
+.expense-table tbody tr:nth-child(even) { background: #fff5f9; }
+
+/* Modal */
+.modal-card { border-top: 4px solid var(--accent); }
+
+/* Focus rings */
+.add-expense-form input:focus,
+.add-expense-form select:focus { outline-color: var(--accent); }
+
+/* Filter */
+.filter-active-notice a { color: var(--accent); }
+
+/* Footer */
+.footer              { background: var(--accent); }
+.footer .brand-icon  { color: #fff; }
+</style>
+{% endblock %}
+
 {% block content %}
 
 <section class="profile-section">
@@ -7,7 +111,10 @@
 
     <!-- User info card -->
     <div class="profile-card">
-      <div class="avatar">{{ user.initials }}</div>
+      <div class="avatar-wrap">
+        <span class="avatar-bow">🎀</span>
+        <div class="avatar">{{ user.initials }}</div>
+      </div>
       <div class="profile-info">
         <h1 class="profile-name">{{ user.name }}</h1>
         <p class="profile-email">{{ user.email }}</p>
