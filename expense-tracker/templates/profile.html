@@ -188,6 +188,7 @@
             <th>Description</th>
             <th>Category</th>
             <th>Amount</th>
+            <th></th>
           </tr>
         </thead>
         <tbody>
@@ -197,6 +198,15 @@
             <td>{{ t.description }}</td>
             <td><span class="badge badge-{{ t.category | lower }}">{{ t.category }}</span></td>
             <td class="amount">{{ t.amount }}</td>
+            <td class="row-actions">
+              <button class="btn-row-edit"
+                      data-id="{{ t.id }}"
+                      data-amount="{{ t.amount_raw }}"
+                      data-category="{{ t.category }}"
+                      data-date="{{ t.date_raw }}"
+                      data-description="{{ t.description }}"
+                      aria-label="Edit expense">Edit</button>
+            </td>
           </tr>
           {% endfor %}
         </tbody>
@@ -271,6 +281,53 @@
   </div>
 </div>
 
+<!-- Edit Expense Modal -->
+<div class="modal-overlay" id="edit-expense-modal" role="dialog"
+     aria-modal="true" aria-labelledby="edit-modal-title">
+  <div class="modal-card">
+    <div class="modal-header">
+      <h2 class="modal-title" id="edit-modal-title">Edit Expense</h2>
+      <button class="modal-close" id="close-edit-modal" aria-label="Close">&times;</button>
+    </div>
+
+    {% if edit_error %}
+    <p class="auth-error">{{ edit_error }}</p>
+    {% endif %}
+
+    <form method="post" id="edit-expense-form" class="add-expense-form">
+      <div class="form-field">
+        <label for="edit-amount">Amount (₹)</label>
+        <input type="number" id="edit-amount" name="amount" min="1" step="0.01" required>
+      </div>
+      <div class="form-field">
+        <label for="edit-category">Category</label>
+        <select id="edit-category" name="category" required>
+          <option value="" disabled>Select a category</option>
+          <option value="Food">Food</option>
+          <option value="Travel">Travel</option>
+          <option value="Bills">Bills</option>
+          <option value="Shopping">Shopping</option>
+          <option value="Entertainment">Entertainment</option>
+          <option value="Health">Health</option>
+          <option value="Other">Other</option>
+        </select>
+      </div>
+      <div class="form-field">
+        <label for="edit-date">Date</label>
+        <input type="date" id="edit-date" name="date" required>
+      </div>
+      <div class="form-field">
+        <label for="edit-description">Description <span class="optional">(optional)</span></label>
+        <input type="text" id="edit-description" name="description" maxlength="200">
+      </div>
+      <div class="form-actions">
+        <button type="submit" class="btn btn-primary">Save Changes</button>
+        <button type="button" class="btn btn-ghost" id="cancel-edit-modal">Cancel</button>
+      </div>
+    </form>
+  </div>
+</div>
+
 {% endblock %}
 
 {% block scripts %}
@@ -289,5 +346,34 @@
   overlay.addEventListener('click', (e) => { if (e.target === overlay) closeModal(); });
 
   {% if show_modal %}openModal();{% endif %}
+
+  const editOverlay   = document.getElementById('edit-expense-modal');
+  const editForm      = document.getElementById('edit-expense-form');
+  const closeEditBtn  = document.getElementById('close-edit-modal');
+  const cancelEditBtn = document.getElementById('cancel-edit-modal');
+
+  function openEditModal()  { editOverlay.classList.add('modal-visible'); }
+  function closeEditModal() { editOverlay.classList.remove('modal-visible'); }
+
+  closeEditBtn.addEventListener('click', closeEditModal);
+  cancelEditBtn.addEventListener('click', closeEditModal);
+  editOverlay.addEventListener('click', (e) => { if (e.target === editOverlay) closeEditModal(); });
+
+  document.querySelectorAll('.btn-row-edit').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const id = btn.dataset.id;
+      editForm.action = `/expenses/${id}/edit`;
+      document.getElementById('edit-amount').value      = btn.dataset.amount;
+      document.getElementById('edit-category').value    = btn.dataset.category;
+      document.getElementById('edit-date').value        = btn.dataset.date;
+      document.getElementById('edit-description').value = btn.dataset.description;
+      openEditModal();
+    });
+  });
+
+  {% if show_edit_modal %}
+  const errBtn = document.querySelector(`.btn-row-edit[data-id="{{ edit_id }}"]`);
+  if (errBtn) errBtn.click();
+  {% endif %}
 </script>
 {% endblock %}

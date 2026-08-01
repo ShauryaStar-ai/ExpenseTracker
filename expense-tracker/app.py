@@ -117,7 +117,7 @@ def profile():
     from_date       = request.args.get("from", "").strip()
     to_date         = request.args.get("to", "").strip()
 
-    query  = "SELECT amount, category, date, description FROM expenses WHERE user_id = ?"
+    query  = "SELECT id, amount, category, date, description FROM expenses WHERE user_id = ?"
     params = [user_id]
     if category_filter:
         query += " AND category = ?"
@@ -135,10 +135,13 @@ def profile():
     for r in rows:
         dt = datetime.strptime(r["date"], "%Y-%m-%d")
         transactions.append({
+            "id":          r["id"],
             "date":        dt.strftime("%d %b %Y"),
+            "date_raw":    r["date"],
             "description": r["description"] or "",
             "category":    r["category"],
             "amount":      f"₹{r['amount']:,.0f}",
+            "amount_raw":  r["amount"],
         })
 
     total      = sum(r["amount"] for r in rows)
@@ -169,8 +172,11 @@ def profile():
     ).fetchall()
     all_categories = [r["category"] for r in cat_rows]
     active_filter  = {"category": category_filter, "from": from_date, "to": to_date}
-    add_error      = request.args.get("add_error", "")
-    show_modal     = bool(add_error)
+    add_error       = request.args.get("add_error", "")
+    show_modal      = bool(add_error)
+    edit_error      = request.args.get("edit_error", "")
+    edit_id         = request.args.get("edit_id", "")
+    show_edit_modal = bool(edit_error and edit_id)
 
     return render_template(
         "profile.html",
@@ -182,6 +188,9 @@ def profile():
         active_filter=active_filter,
         add_error=add_error,
         show_modal=show_modal,
+        edit_error=edit_error,
+        edit_id=edit_id,
+        show_edit_modal=show_edit_modal,
     )
 
 
@@ -194,6 +203,10 @@ def analytics():
 
 def _profile_with_error(message):
     return redirect(url_for("profile") + "?" + urlencode({"add_error": message}))
+
+
+def _profile_with_edit_error(message, expense_id):
+    return redirect(url_for("profile") + "?" + urlencode({"edit_error": message, "edit_id": expense_id}))
 
 
 @app.route("/expenses/add", methods=["GET", "POST"])
@@ -234,9 +247,48 @@ def add_expense():
     return redirect(url_for("profile"))
 
 
-@app.route("/expenses/<int:id>/edit")
+@app.route("/expenses/<int:id>/edit", methods=["GET", "POST"])
 def edit_expense(id):
-    return "Edit expense — coming in Step 8"
+    if not session.get("user_id"):
+        return redirect(url_for("login"))
+
+    if request.method == "GET":
+        return redirect(url_for("profile"))
+
+    db  = get_db()
+    row = db.execute(
+        "SELECT id, user_id FROM expenses WHERE id = ?", (id,)
+    ).fetchone()
+
+    if not row or row["user_id"] != session["user_id"]:
+        abort(403)
+
+    amount_str  = request.form.get("amount", "").strip()
+    category    = request.form.get("category", "").strip()
+    date_str    = request.form.get("date", "").strip()
+    description = request.form.get("description", "").strip()
+
+    if not amount_str or not category or not date_str:
+        return _profile_with_edit_error("Amount, category, and date are required.", id)
+
+    try:
+        amount = float(amount_str)
+        if amount <= 0:
+            raise ValueError
+    except ValueError:
+        return _profile_with_edit_error("Amount must be a positive number.", id)
+
+    try:
+        datetime.strptime(date_str, "%Y-%m-%d")
+    except ValueError:
+        return _profile_with_edit_error("Date must be in YYYY-MM-DD format.", id)
+
+    db.execute(
+        "UPDATE expenses SET amount = ?, category = ?, date = ?, description = ? WHERE id = ?",
+        (amount, category, date_str, description or None, id)
+    )
+    db.commit()
+    return redirect(url_for("profile"))
 
 
 @app.route("/expenses/<int:id>/delete")
