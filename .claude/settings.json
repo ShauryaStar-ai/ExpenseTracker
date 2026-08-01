@@ -1,0 +1,28 @@
+{
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "shell": "powershell",
+            "command": "$cmd = ($input | ConvertFrom-Json).tool_input.command; if ($cmd -match 'rm.*expense_tracker\\.db|del.*expense_tracker\\.db|Remove-Item.*expense_tracker\\.db') { Write-Output 'BLOCKED: You cannot delete the database file!'; exit 2 }",
+            "statusMessage": "Checking for protected file deletion..."
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash \"$CLAUDE_PROJECT_DIR/.claude/hooks/post-implementation-review.sh\"",
+            "timeout": 60
+          }
+        ]
+      }
+    ]
+  }
+}

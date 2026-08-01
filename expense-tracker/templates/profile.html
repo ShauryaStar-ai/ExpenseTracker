@@ -1,5 +1,109 @@
 {% extends "base.html" %}
 {% block title %}Profile — Spendly{% endblock %}
+
+{% block head %}
+<style>
+/* ── Hello Kitty Theme — profile page ───────────────────────────── */
+:root {
+  --ink:            #2c0a1e;
+  --ink-soft:       #5a1a3a;
+  --ink-muted:      #9b4d6b;
+  --ink-faint:      #c891a8;
+  --paper:          #fff5f9;
+  --paper-warm:     #ffdde9;
+  --paper-card:     #ffffff;
+  --accent:         #e91e8c;
+  --accent-light:   #ffd6e7;
+  --accent-2:       #ff69b4;
+  --accent-2-light: #fff0f5;
+  --border:         #ffc0db;
+  --border-soft:    #ffe4ef;
+}
+
+/* Polka-dot background */
+.profile-section {
+  background-color: var(--paper);
+  background-image: radial-gradient(circle, #ffc0db 1.5px, transparent 1.5px);
+  background-size: 22px 22px;
+}
+
+/* Avatar with bow */
+.avatar-wrap {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.avatar-bow {
+  font-size: 1.5rem;
+  position: absolute;
+  top: -1.1rem;
+  left: 50%;
+  transform: translateX(-50%);
+  line-height: 1;
+  z-index: 1;
+}
+
+.avatar {
+  border: 3px solid var(--accent);
+  box-shadow: 0 0 0 4px var(--accent-light);
+  background: var(--accent);
+}
+
+/* Profile card */
+.profile-card {
+  border-color: var(--accent-light);
+  border-width: 2px;
+}
+
+/* Stat cards */
+.stat-card {
+  border-color: var(--accent-light);
+  border-width: 2px;
+  background: linear-gradient(140deg, #fff 80%, #ffd6e7 100%);
+}
+
+/* Section titles */
+.section-title::before { content: "🎀 "; }
+
+/* Progress bars */
+.progress-bar-fill {
+  background: linear-gradient(90deg, var(--accent-2), var(--accent));
+}
+
+/* Buttons */
+.btn-primary            { background: var(--accent); }
+.btn-primary:hover      { background: #c2185b; }
+.btn-submit             { background: var(--accent); }
+.btn-submit:hover       { background: #c2185b; }
+
+/* Navbar */
+.nav-cta                { background: var(--accent) !important; }
+.nav-cta:hover          { background: #c2185b !important; }
+.brand-icon             { color: var(--accent); }
+
+/* Table */
+.expense-table th                     { background: var(--paper-warm); }
+.expense-table tbody tr:nth-child(even) { background: #fff5f9; }
+
+/* Modal */
+.modal-card { border-top: 4px solid var(--accent); }
+
+/* Focus rings */
+.add-expense-form input:focus,
+.add-expense-form select:focus { outline-color: var(--accent); }
+
+/* Filter */
+.filter-active-notice a { color: var(--accent); }
+
+/* Footer */
+.footer              { background: var(--accent); }
+.footer .brand-icon  { color: #fff; }
+</style>
+{% endblock %}
+
 {% block content %}
 
 <section class="profile-section">
@@ -7,7 +111,10 @@
 
     <!-- User info card -->
     <div class="profile-card">
-      <div class="avatar">{{ user.initials }}</div>
+      <div class="avatar-wrap">
+        <span class="avatar-bow">🎀</span>
+        <div class="avatar">{{ user.initials }}</div>
+      </div>
       <div class="profile-info">
         <h1 class="profile-name">{{ user.name }}</h1>
         <p class="profile-email">{{ user.email }}</p>
@@ -81,6 +188,7 @@
             <th>Description</th>
             <th>Category</th>
             <th>Amount</th>
+            <th></th>
           </tr>
         </thead>
         <tbody>
@@ -90,6 +198,15 @@
             <td>{{ t.description }}</td>
             <td><span class="badge badge-{{ t.category | lower }}">{{ t.category }}</span></td>
             <td class="amount">{{ t.amount }}</td>
+            <td class="row-actions">
+              <button class="btn-row-edit"
+                      data-id="{{ t.id }}"
+                      data-amount="{{ t.amount_raw }}"
+                      data-category="{{ t.category }}"
+                      data-date="{{ t.date_raw }}"
+                      data-description="{{ t.description }}"
+                      aria-label="Edit expense">Edit</button>
+            </td>
           </tr>
           {% endfor %}
         </tbody>
@@ -164,6 +281,53 @@
   </div>
 </div>
 
+<!-- Edit Expense Modal -->
+<div class="modal-overlay" id="edit-expense-modal" role="dialog"
+     aria-modal="true" aria-labelledby="edit-modal-title">
+  <div class="modal-card">
+    <div class="modal-header">
+      <h2 class="modal-title" id="edit-modal-title">Edit Expense</h2>
+      <button class="modal-close" id="close-edit-modal" aria-label="Close">&times;</button>
+    </div>
+
+    {% if edit_error %}
+    <p class="auth-error">{{ edit_error }}</p>
+    {% endif %}
+
+    <form method="post" id="edit-expense-form" class="add-expense-form">
+      <div class="form-field">
+        <label for="edit-amount">Amount (₹)</label>
+        <input type="number" id="edit-amount" name="amount" min="1" step="0.01" required>
+      </div>
+      <div class="form-field">
+        <label for="edit-category">Category</label>
+        <select id="edit-category" name="category" required>
+          <option value="" disabled>Select a category</option>
+          <option value="Food">Food</option>
+          <option value="Travel">Travel</option>
+          <option value="Bills">Bills</option>
+          <option value="Shopping">Shopping</option>
+          <option value="Entertainment">Entertainment</option>
+          <option value="Health">Health</option>
+          <option value="Other">Other</option>
+        </select>
+      </div>
+      <div class="form-field">
+        <label for="edit-date">Date</label>
+        <input type="date" id="edit-date" name="date" required>
+      </div>
+      <div class="form-field">
+        <label for="edit-description">Description <span class="optional">(optional)</span></label>
+        <input type="text" id="edit-description" name="description" maxlength="200">
+      </div>
+      <div class="form-actions">
+        <button type="submit" class="btn btn-primary">Save Changes</button>
+        <button type="button" class="btn btn-ghost" id="cancel-edit-modal">Cancel</button>
+      </div>
+    </form>
+  </div>
+</div>
+
 {% endblock %}
 
 {% block scripts %}
@@ -182,5 +346,34 @@
   overlay.addEventListener('click', (e) => { if (e.target === overlay) closeModal(); });
 
   {% if show_modal %}openModal();{% endif %}
+
+  const editOverlay   = document.getElementById('edit-expense-modal');
+  const editForm      = document.getElementById('edit-expense-form');
+  const closeEditBtn  = document.getElementById('close-edit-modal');
+  const cancelEditBtn = document.getElementById('cancel-edit-modal');
+
+  function openEditModal()  { editOverlay.classList.add('modal-visible'); }
+  function closeEditModal() { editOverlay.classList.remove('modal-visible'); }
+
+  closeEditBtn.addEventListener('click', closeEditModal);
+  cancelEditBtn.addEventListener('click', closeEditModal);
+  editOverlay.addEventListener('click', (e) => { if (e.target === editOverlay) closeEditModal(); });
+
+  document.querySelectorAll('.btn-row-edit').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const id = btn.dataset.id;
+      editForm.action = `/expenses/${id}/edit`;
+      document.getElementById('edit-amount').value      = btn.dataset.amount;
+      document.getElementById('edit-category').value    = btn.dataset.category;
+      document.getElementById('edit-date').value        = btn.dataset.date;
+      document.getElementById('edit-description').value = btn.dataset.description;
+      openEditModal();
+    });
+  });
+
+  {% if show_edit_modal %}
+  const errBtn = document.querySelector(`.btn-row-edit[data-id="{{ edit_id }}"]`);
+  if (errBtn) errBtn.click();
+  {% endif %}
 </script>
 {% endblock %}
