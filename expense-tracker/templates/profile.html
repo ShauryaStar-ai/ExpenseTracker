@@ -206,6 +206,13 @@
                       data-date="{{ t.date_raw }}"
                       data-description="{{ t.description }}"
                       aria-label="Edit expense">Edit</button>
+              <form class="delete-form"
+                    method="post"
+                    action="{{ url_for('delete_expense', id=t.id) }}"
+                    data-description="{{ t.description or t.category }}">
+                <button type="button" class="btn-row-delete"
+                        aria-label="Delete expense">Delete</button>
+              </form>
             </td>
           </tr>
           {% endfor %}
@@ -231,6 +238,27 @@
 
   </div>
 </section>
+
+<!-- Delete Confirmation Modal -->
+<div class="modal-overlay" id="delete-confirm-modal" role="dialog"
+     aria-modal="true" aria-labelledby="delete-confirm-title">
+  <div class="modal-card modal-card--sm">
+    <div class="modal-header">
+      <h2 class="modal-title" id="delete-confirm-title">Delete Expense</h2>
+      <button class="modal-close" id="close-delete-confirm"
+              aria-label="Close">&times;</button>
+    </div>
+    <p class="delete-confirm-msg">
+      Are you sure you want to delete
+      <strong id="delete-confirm-desc"></strong>?
+      This cannot be undone.
+    </p>
+    <div class="form-actions">
+      <button id="confirm-delete-btn" class="btn btn-danger">Delete</button>
+      <button id="cancel-delete-btn" class="btn btn-ghost">Cancel</button>
+    </div>
+  </div>
+</div>
 
 <!-- Add Expense Modal -->
 <div class="modal-overlay" id="add-expense-modal" role="dialog"
@@ -375,5 +403,39 @@
   const errBtn = document.querySelector(`.btn-row-edit[data-id="{{ edit_id }}"]`);
   if (errBtn) errBtn.click();
   {% endif %}
+
+  const deleteOverlay     = document.getElementById('delete-confirm-modal');
+  const closeDeleteBtn    = document.getElementById('close-delete-confirm');
+  const cancelDeleteBtn   = document.getElementById('cancel-delete-btn');
+  const confirmDeleteBtn  = document.getElementById('confirm-delete-btn');
+  const deleteConfirmDesc = document.getElementById('delete-confirm-desc');
+
+  let pendingDeleteForm = null;
+
+  function openDeleteConfirm(form) {
+    pendingDeleteForm = form;
+    deleteConfirmDesc.textContent = form.dataset.description || 'this expense';
+    deleteOverlay.classList.add('modal-visible');
+  }
+  function closeDeleteConfirm() {
+    pendingDeleteForm = null;
+    deleteOverlay.classList.remove('modal-visible');
+  }
+
+  closeDeleteBtn.addEventListener('click', closeDeleteConfirm);
+  cancelDeleteBtn.addEventListener('click', closeDeleteConfirm);
+  deleteOverlay.addEventListener('click', (e) => {
+    if (e.target === deleteOverlay) closeDeleteConfirm();
+  });
+
+  confirmDeleteBtn.addEventListener('click', () => {
+    if (pendingDeleteForm) pendingDeleteForm.submit();
+  });
+
+  document.querySelectorAll('.btn-row-delete').forEach(btn => {
+    btn.addEventListener('click', () => {
+      openDeleteConfirm(btn.closest('.delete-form'));
+    });
+  });
 </script>
 {% endblock %}

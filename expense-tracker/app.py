@@ -291,9 +291,25 @@ def edit_expense(id):
     return redirect(url_for("profile"))
 
 
-@app.route("/expenses/<int:id>/delete")
+@app.route("/expenses/<int:id>/delete", methods=["GET", "POST"])
 def delete_expense(id):
-    return "Delete expense — coming in Step 9"
+    if not session.get("user_id"):
+        return redirect(url_for("login"))
+
+    if request.method == "GET":
+        return redirect(url_for("profile"))
+
+    db  = get_db()
+    row = db.execute(
+        "SELECT id, user_id FROM expenses WHERE id = ?", (id,)
+    ).fetchone()
+
+    if not row or row["user_id"] != session["user_id"]:
+        abort(403)
+
+    db.execute("DELETE FROM expenses WHERE id = ?", (id,))
+    db.commit()
+    return redirect(url_for("profile"))
 
 
 if __name__ == "__main__":
